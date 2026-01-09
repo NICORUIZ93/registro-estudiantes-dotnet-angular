@@ -1,0 +1,194 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="text-primary mb-0">Registro de Estudiantes</h1>
+    <a routerLink="/registro" class="btn btn-primary btn-lg">
+      <i class="bi bi-person-plus me-2"></i>Nuevo Estudiante
+    </a>
+  </div>
+
+  @if (loading) {
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-3 text-muted fs-5">Cargando estudiantes...</p>
+  </div>
+  }
+
+  @if (successMessage) {
+  <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i>
+    <strong>¡Éxito!</strong> {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+  </div>
+  }
+
+  @if (error) {
+  <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>¡Error!</strong> {{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
+  </div>
+  }
+
+  @if (!loading && estudiantes.length === 0) {
+  <div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-people display-1 text-muted mb-3"></i>
+      <h3 class="text-muted mb-3">No hay estudiantes registrados</h3>
+      <p class="text-muted mb-4">Comienza agregando tu primer estudiante</p>
+      <a routerLink="/registro" class="btn btn-primary btn-lg">
+        <i class="bi bi-person-plus me-2"></i>Agregar Primer Estudiante
+      </a>
+    </div>
+  </div>
+  }
+
+  @if (!loading && estudiantes.length > 0) {
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom">
+      <div class="d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+          <i class="bi bi-people-fill text-primary me-2"></i>
+          Lista de Estudiantes
+        </h5>
+        <span class="badge bg-primary rounded-pill">
+          {{ estudiantes.length }} estudiante{{ estudiantes.length !== 1 ? 's' : '' }}
+        </span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th scope="col" class="ps-4">
+              <i class="bi bi-person-badge me-2"></i>Nombre
+            </th>
+            <th scope="col">
+              <i class="bi bi-envelope me-2"></i>Email
+            </th>
+            <th scope="col">
+              <i class="bi bi-book me-2"></i>Materias
+            </th>
+            <th scope="col">
+              <i class="bi bi-award me-2"></i>Créditos
+            </th>
+            <th scope="col" class="text-end pe-4">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (estudiante of estudiantes; track estudiante.id) {
+          <tr class="align-middle">
+            <td class="ps-4">
+              <div class="d-flex align-items-center">
+                <div class="avatar-circle me-3">
+                  <span class="avatar-text">
+                    {{ estudiante.nombre.charAt(0) }}{{ estudiante.apellido.charAt(0) }}
+                  </span>
+                </div>
+                <div>
+                  <strong>{{ estudiante.nombre }} {{ estudiante.apellido }}</strong>
+                  <div class="text-muted small">ID: {{ estudiante.id }}</div>
+                </div>
+              </div>
+            </td>
+
+            <td>
+              <div class="d-flex align-items-center">
+                <i class="bi bi-envelope text-muted me-2"></i>
+                <a href="mailto:{{ estudiante.email }}" class="text-decoration-none">
+                  {{ estudiante.email }}
+                </a>
+              </div>
+            </td>
+
+            <td>
+              <div class="d-flex flex-wrap gap-1">
+                @for (materia of estudiante.materias; track materia.id) {
+                <span class="badge bg-light text-dark border">
+                  {{ materia.nombre }}
+                  <small class="text-muted ms-1">({{ materia.creditos }} cr.)</small>
+                </span>
+                }
+              </div>
+              @if (estudiante.materias.length > 0) {
+              <small class="text-muted d-block mt-1">
+                <i class="bi bi-person-workspace me-1"></i>
+                {{ estudiante.materias[0].profesorNombre }}
+                @if (estudiante.materias.length > 1) {
+                y {{ estudiante.materias.length - 1 }} más
+                }
+              </small>
+              }
+            </td>
+
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="progress flex-grow-1 me-3" style="height: 8px;">
+                  <div class="progress-bar bg-success" [style.width.%]="(estudiante.totalCreditos / 12) * 100"
+                    role="progressbar">
+                  </div>
+                </div>
+                <strong class="text-nowrap">{{ estudiante.totalCreditos }} / 10</strong>
+              </div>
+              <small class="text-muted">Créditos totales</small>
+            </td>
+
+            <td class="text-end pe-4">
+              <div class="btn-group" role="group">
+                <a [routerLink]="['/estudiante', estudiante.id]" class="btn btn-primary btn-sm">
+                  <i class="bi bi-eye me-1"></i>Ver
+                </a>
+
+                <button type="button" class="btn btn-danger btn-sm" (click)="mostrarModalEliminar(estudiante.id)">
+                  <i class="bi bi-trash me-1"></i>Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-footer bg-white border-top py-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="text-muted">
+          <i class="bi bi-info-circle me-1"></i>
+          Total: {{ estudiantes.length }} estudiante{{ estudiantes.length !== 1 ? 's' : '' }}
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-danger text-white border-0">
+        <h5 class="modal-title" id="confirmDeleteModalLabel">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar eliminación
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body py-4">
+        <div class="text-center mb-3">
+          <i class="bi bi-trash3 text-danger" style="font-size: 3rem;"></i>
+        </div>
+        <p class="text-center fs-5 mb-2">¿Está seguro de eliminar este estudiante?</p>
+        <p class="text-center text-muted mb-0">Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" (click)="cancelarEliminacion()">
+          <i class="bi bi-x-circle me-2"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-danger px-4" (click)="confirmarEliminacion()">
+          <i class="bi bi-trash me-2"></i>Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

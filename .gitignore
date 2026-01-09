@@ -1,0 +1,56 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# User secrets
+**/secrets.json
+
+# Build artifacts - .NET
+**/bin/
+**/obj/
+*.dll
+*.exe
+*.pdb
+
+# Build artifacts - Angular
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker
+**/logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+nul
+
+# Backups
+*.bak
+*.backup
+backup_*.sql
+
+# Package managers
+package-lock.json.backup
+yarn.lock

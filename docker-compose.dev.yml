@@ -1,0 +1,52 @@
+version: '3.8'
+
+# ==========================================
+# DOCKER COMPOSE PARA DESARROLLO
+# Sobrescribe configuraciones para desarrollo local
+# Uso: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ==========================================
+
+services:
+  mysql:
+    ports:
+      - "3306:3306"
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --general-log=1
+      --general-log-file=/var/log/mysql/general.log
+      --slow-query-log=1
+      --slow-query-log-file=/var/log/mysql/slow.log
+      --long-query-time=2
+    volumes:
+      - ./logs/mysql:/var/log/mysql
+
+  api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - Logging__LogLevel__Default=Debug
+      - Logging__LogLevel__Microsoft.AspNetCore=Information
+    volumes:
+      - ./RegistroEstudiantes.API:/app:ro
+      - ./logs/api:/app/logs
+    develop:
+      watch:
+        - action: rebuild
+          path: ./RegistroEstudiantes.API
+          target: /app
+
+  frontend:
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+    develop:
+      watch:
+        - action: rebuild
+          path: ./RegistroEstudiantes.Web/src
+          target: /usr/share/nginx/html
+
+  phpmyadmin:
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_ABSOLUTE_URI=http://localhost:8080/

@@ -1,0 +1,165 @@
+version: '3.8'
+
+# ==========================================
+# SERVICIOS DE LA APLICACION
+# ==========================================
+services:
+  # ==========================================
+  # BASE DE DATOS MYSQL
+  # ==========================================
+  mysql:
+    image: mysql:8.0
+    container_name: registro_estudiantes_db
+    hostname: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass123}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-RegistroEstudiantesDB}
+      MYSQL_USER: ${MYSQL_USER:-admin}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-Admin123!}
+      TZ: "America/Mexico_City"
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/01-init-mysql.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    networks:
+      - registro_estudiantes_network
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max_connections=200
+      --innodb_buffer_pool_size=256M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpass123}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    labels:
+      com.registro-estudiantes.description: "MySQL Database Server"
+
+  # ==========================================
+  # BACKEND API (.NET)
+  # ==========================================
+  api:
+    build:
+      context: ./RegistroEstudiantes.API
+      dockerfile: Dockerfile
+    image: registro-estudiantes-api:latest
+    container_name: registro_estudiantes_api
+    hostname: api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=mysql;Port=3306;Database=${MYSQL_DATABASE:-RegistroEstudiantesDB};User=${MYSQL_USER:-admin};Password=${MYSQL_PASSWORD:-Admin123!};
+      - CORS__Origins=http://localhost,http://localhost:4200,http://frontend
+      - TZ=America/Mexico_City
+    ports:
+      - "5096:8080"
+    networks:
+      - registro_estudiantes_network
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    labels:
+      com.registro-estudiantes.description: ".NET API Backend"
+
+  # ==========================================
+  # FRONTEND ANGULAR
+  # ==========================================
+  frontend:
+    build:
+      context: ./RegistroEstudiantes.Web
+      dockerfile: Dockerfile
+      args:
+        - API_URL=http://localhost:5096/api
+    image: registro-estudiantes-frontend:latest
+    container_name: registro_estudiantes_frontend
+    hostname: frontend
+    environment:
+      - TZ=America/Mexico_City
+    ports:
+      - "4200:80"
+    networks:
+      - registro_estudiantes_network
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    labels:
+      com.registro-estudiantes.description: "Angular Frontend Application"
+
+  # ==========================================
+  # PHPMYADMIN
+  # ==========================================
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: registro_estudiantes_phpmyadmin
+    hostname: phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: ${MYSQL_USER:-admin}
+      PMA_PASSWORD: ${MYSQL_PASSWORD:-Admin123!}
+      UPLOAD_LIMIT: 64M
+      MEMORY_LIMIT: 512M
+      MAX_EXECUTION_TIME: 300
+    ports:
+      - "8080:80"
+    volumes:
+      - phpmyadmin_data:/var/www/html
+    networks:
+      - registro_estudiantes_network
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    labels:
+      com.registro-estudiantes.description: "phpMyAdmin Database Management"
+
+# ==========================================
+# REDES
+# ==========================================
+networks:
+  registro_estudiantes_network:
+    driver: bridge
+    name: registro_estudiantes_net
+    labels:
+      com.registro-estudiantes.description: "Red interna de la aplicación"
+
+# ==========================================
+# VOLUMENES
+# ==========================================
+volumes:
+  mysql_data:
+    driver: local
+    name: registro_estudiantes_mysql_data
+    labels:
+      com.registro-estudiantes.description: "Datos persistentes de MySQL"
+
+  phpmyadmin_data:
+    driver: local
+    name: registro_estudiantes_phpmyadmin_data
+    labels:
+      com.registro-estudiantes.description: "Configuración de phpMyAdmin"

@@ -1,0 +1,55 @@
+# Archivos de Git
+.git
+.gitignore
+.gitattributes
+
+# Documentación
+*.md
+!README.md
+docs/
+
+# IDE y editores
+.vscode/
+.vs/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archivos temporales
+*.tmp
+*.temp
+*.log
+*.cache
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Archivos de configuración local
+.env
+.env.local
+*.local
+
+# Node modules
+**/node_modules/
+**/.angular/
+**/dist/
+**/coverage/
+
+# .NET
+**/bin/
+**/obj/
+**/*.user
+**/*.suo
+**/.vs/
+
+# Archivos de prueba
+**/*.Test/
+**/*.Tests/
