@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.production.com/api'
+  // API de la app cuando corre en Docker/local
+  apiUrl: 'http://localhost:5096/api'
 };

@@ -22,8 +22,8 @@ RUN npm run build -- --configuration production
 FROM nginx:alpine AS final
 WORKDIR /usr/share/nginx/html
 
-# Copiar archivos compilados
-COPY --from=build /app/dist/registro-estudiantes.web/browser /usr/share/nginx/html
+# Copiar archivos compilados (coincidir con la ruta generada por Angular)
+COPY --from=build /app/dist/RegistroEstudiantes.Web/browser /usr/share/nginx/html
 
 # Copiar configuración personalizada de nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf

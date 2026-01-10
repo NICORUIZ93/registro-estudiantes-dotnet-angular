@@ -155,7 +155,7 @@
                   </div>
                   <div>
                     <h5 class="mb-0">{{ profesor.nombre }} {{ profesor.apellido }}</h5>
-                    <small class="text-muted">{{ profesor.materias?.length || 0 }} materias disponibles</small>
+                    <small class="text-muted">{{ (profesor.materias || []).length }} materias disponibles</small>
                   </div>
                   @if (isProfesorUsado(profesor.id)) {
                   <span class="ms-auto badge bg-success">

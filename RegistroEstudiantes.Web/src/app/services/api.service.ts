@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Estudiante, CrearEstudiante, ActualizarEstudiante } from '../models/estudiante.model';
 import { Materia, Profesor, CompanerosPorMateria } from '../models/materia.model';
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../environments/environment';
 
 interface PaginatedResponse<T> {
   items: T[];

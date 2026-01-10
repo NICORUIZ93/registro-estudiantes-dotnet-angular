@@ -19,8 +19,12 @@ public class ProfesoresController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProfesorDto>>> GetProfesores()
     {
-        var profesores = await _context.Profesores
+        // Cargamos profesores + materias desde la BD y luego mapeamos en memoria
+        var profesoresDb = await _context.Profesores
             .Include(p => p.Materias)
+            .ToListAsync();
+
+        var profesores = profesoresDb
             .Select(p => new ProfesorDto
             {
                 Id = p.Id,
@@ -35,7 +39,7 @@ public class ProfesoresController : ControllerBase
                     ProfesorNombre = $"{p.Nombre} {p.Apellido}"
                 }).ToList()
             })
-            .ToListAsync();
+            .ToList();
 
         return Ok(profesores);
     }
@@ -43,29 +47,29 @@ public class ProfesoresController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ProfesorDto>> GetProfesor(int id)
     {
-        var profesor = await _context.Profesores
+        var profesorDb = await _context.Profesores
             .Include(p => p.Materias)
-            .Where(p => p.Id == id)
-            .Select(p => new ProfesorDto
-            {
-                Id = p.Id,
-                Nombre = p.Nombre,
-                Apellido = p.Apellido,
-                Materias = p.Materias.Select(m => new MateriaDto
-                {
-                    Id = m.Id,
-                    Nombre = m.Nombre,
-                    Creditos = m.Creditos,
-                    ProfesorId = m.ProfesorId,
-                    ProfesorNombre = $"{p.Nombre} {p.Apellido}"
-                }).ToList()
-            })
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(p => p.Id == id);
 
-        if (profesor == null)
+        if (profesorDb == null)
         {
             return NotFound(new { message = "Profesor no encontrado" });
         }
+
+        var profesor = new ProfesorDto
+        {
+            Id = profesorDb.Id,
+            Nombre = profesorDb.Nombre,
+            Apellido = profesorDb.Apellido,
+            Materias = profesorDb.Materias.Select(m => new MateriaDto
+            {
+                Id = m.Id,
+                Nombre = m.Nombre,
+                Creditos = m.Creditos,
+                ProfesorId = m.ProfesorId,
+                ProfesorNombre = $"{profesorDb.Nombre} {profesorDb.Apellido}"
+            }).ToList()
+        };
 
         return Ok(profesor);
     }
