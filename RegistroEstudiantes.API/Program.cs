@@ -8,28 +8,22 @@ using RegistroEstudiantes.API.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Servicios básicos
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 2. Base de datos
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    // Detectar si es PostgreSQL o MySQL por la cadena de conexión
     if (connectionString?.Contains("Server=") == true || connectionString?.Contains("Host=") == true)
     {
-        // Intentar MySQL primero
         if (connectionString.Contains("Server=") || connectionString.Contains("Port=3306"))
         {
-            // MySQL
             var serverVersion = new MySqlServerVersion(new Version(8, 0, 0));
             options.UseMySql(connectionString, serverVersion);
         }
         else
         {
-            // PostgreSQL
             options.UseNpgsql(connectionString);
         }
     }
@@ -39,11 +33,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     }
 });
 
-// 3. Health Checks
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>("database");
 
-// 4. Autenticación JWT (opcional)
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (!string.IsNullOrEmpty(jwtKey))
 {
@@ -63,7 +55,6 @@ if (!string.IsNullOrEmpty(jwtKey))
         });
 }
 
-// 5. CORS
 var corsOrigins = builder.Configuration["CORS:Origins"]?.Split(',') ?? new[]
 {
     "http://localhost:4200",
@@ -85,14 +76,12 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// 6. Pipeline
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// 7. Health Check endpoint
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = async (context, report) =>

@@ -19,7 +19,6 @@ public class ProfesoresController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProfesorDto>>> GetProfesores()
     {
-        // Cargamos profesores + materias desde la BD y luego mapeamos en memoria
         var profesoresDb = await _context.Profesores
             .Include(p => p.Materias)
             .ToListAsync();
