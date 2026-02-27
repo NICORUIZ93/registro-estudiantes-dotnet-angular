@@ -6,6 +6,7 @@ import { EstudianteDetalleComponent } from './components/estudiante-detalle/estu
 export const routes: Routes = [
   { path: '', component: EstudiantesListaComponent },
   { path: 'registro', component: EstudianteFormComponent },
+  { path: 'estudiante/:id/editar', component: EstudianteFormComponent },
   { path: 'estudiante/:id', component: EstudianteDetalleComponent },
   { path: '**', redirectTo: '' }
 ];

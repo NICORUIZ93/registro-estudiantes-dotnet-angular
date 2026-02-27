@@ -126,11 +126,11 @@
             <td>
               <div class="d-flex align-items-center">
                 <div class="progress flex-grow-1 me-3" style="height: 8px;">
-                  <div class="progress-bar bg-success" [style.width.%]="(estudiante.totalCreditos / 12) * 100"
+                  <div class="progress-bar bg-success" [style.width.%]="(estudiante.totalCreditos / 9) * 100"
                     role="progressbar">
                   </div>
                 </div>
-                <strong class="text-nowrap">{{ estudiante.totalCreditos }} / 10</strong>
+                <strong class="text-nowrap">{{ estudiante.totalCreditos }} / 9</strong>
               </div>
               <small class="text-muted">Créditos totales</small>
             </td>
@@ -139,6 +139,10 @@
               <div class="btn-group" role="group">
                 <a [routerLink]="['/estudiante', estudiante.id]" class="btn btn-primary btn-sm">
                   <i class="bi bi-eye me-1"></i>Ver
+                </a>
+
+                <a [routerLink]="['/estudiante', estudiante.id, 'editar']" class="btn btn-warning btn-sm">
+                  <i class="bi bi-pencil me-1"></i>Editar
                 </a>
 
                 <button type="button" class="btn btn-danger btn-sm" (click)="mostrarModalEliminar(estudiante.id)">

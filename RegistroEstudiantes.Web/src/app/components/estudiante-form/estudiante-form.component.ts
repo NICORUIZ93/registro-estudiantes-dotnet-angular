@@ -1,10 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { Materia, Profesor } from '../../models/materia.model';
-import { CrearEstudiante } from '../../models/estudiante.model';
+import { ActualizarEstudiante, CrearEstudiante } from '../../models/estudiante.model';
 import { AppError } from '../../interceptors/error.interceptor';
 
 @Component({
@@ -21,10 +21,13 @@ export class EstudianteFormComponent implements OnInit {
   submitting = false;
   error = '';
   success = '';
+  isEditMode = false;
+  estudianteId: number | null = null;
 
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
+    private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {
@@ -32,7 +35,16 @@ export class EstudianteFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.detectarModoEdicion();
     this.cargarProfesores();
+  }
+
+  private detectarModoEdicion(): void {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    if (id && !Number.isNaN(id)) {
+      this.isEditMode = true;
+      this.estudianteId = id;
+    }
   }
 
   private initializeForm(): void {
@@ -99,12 +111,36 @@ export class EstudianteFormComponent implements OnInit {
         this.loading = false;
 
         this.actualizarValidadores();
+        if (this.isEditMode && this.estudianteId) {
+          this.cargarEstudianteEdicion(this.estudianteId);
+        }
         this.cdr.detectChanges();
       },
       error: (err: AppError) => {
         console.error('Error cargando profesores:', err);
         this.error = err.message || 'Error al cargar profesores';
         this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private cargarEstudianteEdicion(id: number): void {
+    this.submitting = true;
+    this.apiService.getEstudiante(id).subscribe({
+      next: (estudiante) => {
+        this.estudianteForm.patchValue({
+          nombre: estudiante.nombre,
+          apellido: estudiante.apellido,
+          email: estudiante.email,
+          materiasIds: estudiante.materias.map(m => m.id)
+        });
+        this.submitting = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: AppError) => {
+        this.error = err.message || 'Error al cargar estudiante';
+        this.submitting = false;
         this.cdr.detectChanges();
       }
     });
@@ -205,7 +241,7 @@ export class EstudianteFormComponent implements OnInit {
         else if (apellidoErrors['maxlength']) this.error = 'El apellido no puede exceder 100 caracteres';
       } else if (emailErrors) {
         if (emailErrors['required']) this.error = 'El email es requerido';
-        else if (emailErrors['email']) this.error = 'Email inválido';
+        else if (emailErrors['email']) this.error = 'Email invÃ¡lido';
         else if (emailErrors['maxlength']) this.error = 'El email no puede exceder 255 caracteres';
       } else if (materiasErrors) {
         if (materiasErrors['required']) this.error = 'Debe seleccionar materias';
@@ -224,30 +260,43 @@ export class EstudianteFormComponent implements OnInit {
 
     const estudiante: CrearEstudiante = this.estudianteForm.value;
 
-    this.apiService.crearEstudiante(estudiante).subscribe({
-      next: (response) => {
-        console.log('SUCCESS - Estudiante creado:', response);
-        console.log('submitting en success:', this.submitting);
+    if (this.isEditMode && this.estudianteId) {
+      this.apiService.actualizarEstudiante(this.estudianteId, estudiante as ActualizarEstudiante).subscribe({
+        next: () => {
+          this.success = 'Estudiante actualizado exitosamente';
+          this.submitting = false;
+          this.cdr.detectChanges();
 
+          setTimeout(() => {
+            this.router.navigate(['/']);
+          }, 1500);
+        },
+        error: (err: AppError) => {
+          console.error('ERROR - Error actualizando estudiante:', err);
+          this.submitting = false;
+          this.error = err.message;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          this.cdr.detectChanges();
+        }
+      });
+      return;
+    }
+
+    this.apiService.crearEstudiante(estudiante).subscribe({
+      next: () => {
         this.success = 'Estudiante registrado exitosamente';
         this.submitting = false;
         this.cdr.detectChanges();
 
         setTimeout(() => {
-          this.router.navigate(['/estudiantes']);
+          this.router.navigate(['/']);
         }, 1500);
       },
       error: (err: AppError) => {
         console.error('ERROR - Error creando estudiante:', err);
-        console.log('submitting en error antes de reset:', this.submitting);
-
         this.submitting = false;
-        console.log('submitting en error después de reset:', this.submitting);
-
         this.error = err.message;
-
         window.scrollTo({ top: 0, behavior: 'smooth' });
-
         this.cdr.detectChanges();
       }
     });

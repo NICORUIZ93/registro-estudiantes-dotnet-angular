@@ -37,6 +37,11 @@ public class ActualizarEstudianteDto
     [EmailAddress(ErrorMessage = "Email no valido")]
     [MaxLength(150)]
     public string Email { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Debe seleccionar 3 materias")]
+    [MinLength(3, ErrorMessage = "Debe seleccionar exactamente 3 materias")]
+    [MaxLength(3, ErrorMessage = "Debe seleccionar exactamente 3 materias")]
+    public List<int> MateriasIds { get; set; } = new();
 }
 
 public class EstudianteResponseDto

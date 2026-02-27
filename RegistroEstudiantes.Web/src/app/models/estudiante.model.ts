@@ -26,4 +26,5 @@ export interface ActualizarEstudiante {
   nombre: string;
   apellido: string;
   email: string;
+  materiasIds: number[];
 }

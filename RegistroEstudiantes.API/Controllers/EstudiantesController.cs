@@ -166,7 +166,9 @@ public class EstudiantesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateEstudiante(int id, ActualizarEstudianteDto dto)
     {
-        var estudiante = await _context.Estudiantes.FindAsync(id);
+        var estudiante = await _context.Estudiantes
+            .Include(e => e.Inscripciones)
+            .FirstOrDefaultAsync(e => e.Id == id);
 
         if (estudiante == null)
         {
@@ -178,11 +180,52 @@ public class EstudiantesController : ControllerBase
             return BadRequest(new { message = "Ya existe otro estudiante con ese email" });
         }
 
+        if (dto.MateriasIds.Count != 3)
+        {
+            return BadRequest(new { message = "Debe seleccionar exactamente 3 materias" });
+        }
+
+        var materias = await _context.Materias
+            .Where(m => dto.MateriasIds.Contains(m.Id))
+            .ToListAsync();
+
+        if (materias.Count != 3)
+        {
+            return BadRequest(new { message = "Una o mas materias no existen" });
+        }
+
+        var profesoresIds = materias.Select(m => m.ProfesorId).ToList();
+        if (profesoresIds.Distinct().Count() != 3)
+        {
+            return BadRequest(new { message = "No puede seleccionar materias del mismo profesor. Cada materia debe ser de un profesor diferente." });
+        }
+
+        using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
         estudiante.Nombre = dto.Nombre;
         estudiante.Apellido = dto.Apellido;
         estudiante.Email = dto.Email;
 
+        _context.Inscripciones.RemoveRange(estudiante.Inscripciones);
         await _context.SaveChangesAsync();
+
+        var nuevasInscripciones = dto.MateriasIds.Select(materiaId => new Inscripcion
+        {
+            EstudianteId = estudiante.Id,
+            MateriaId = materiaId
+        });
+
+        _context.Inscripciones.AddRange(nuevasInscripciones);
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
 
         return NoContent();
     }
