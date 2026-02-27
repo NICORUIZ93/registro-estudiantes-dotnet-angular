@@ -1,25 +1,41 @@
 ﻿# RegistroEstudiantes
 
-Aplicacion fullstack para gestion de estudiantes con reglas academicas de inscripcion.
+Aplicacion fullstack para registro academico de estudiantes con reglas de inscripcion y validaciones de negocio.
 
-## Objetivo de la prueba tecnica
-Construir una aplicacion web cliente-servidor que permita:
+## Resumen
+Este proyecto cumple una prueba tecnica de aplicacion web cliente-servidor para gestionar estudiantes, materias y profesores.
+
+Incluye:
+- API REST en .NET 10.
+- Frontend en Angular 21.
+- Base de datos MySQL 8.
+- Orquestacion completa con Docker Compose.
+
+## Requisitos de la prueba
 - CRUD de estudiantes.
-- Inscripcion de cada estudiante a un programa de creditos.
-- 10 materias totales, 3 creditos por materia.
+- Programa de creditos.
+- 10 materias totales.
+- 3 creditos por materia.
 - Cada estudiante debe seleccionar exactamente 3 materias.
 - 5 profesores, 2 materias por profesor.
-- Un estudiante no puede tomar dos materias con el mismo profesor.
-- Visualizar estudiantes registrados y companeros por materia.
-- Entregar aplicacion web y script SQL para creacion de base de datos.
+- El estudiante no puede inscribir dos materias con el mismo profesor.
+- Ver registros de otros estudiantes en linea.
+- Ver nombres de companeros por cada materia.
+- Entregar aplicacion y script SQL.
 
-## Stack
-- Backend: .NET 10 Web API + Entity Framework Core
-- Frontend: Angular 21 + Bootstrap 5
-- Base de datos: MySQL 8
-- Infra: Docker + Docker Compose + Nginx
+## Estado de cumplimiento
+- CRUD estudiantes: implementado en API y UI.
+- Reglas de seleccion de materias: implementadas en backend y frontend.
+- Visualizacion de companeros por materia: implementada.
+- Script SQL de creacion y datos semilla: incluido.
 
-## Estructura del repositorio
+## Stack tecnico
+- Backend: ASP.NET Core Web API (.NET 10), Entity Framework Core.
+- Frontend: Angular 21, TypeScript, Bootstrap 5.
+- Base de datos: MySQL 8.
+- Infraestructura: Docker, Docker Compose, Nginx.
+
+## Estructura del proyecto
 ```text
 RegistroEstudiantes/
 |-- RegistroEstudiantes.API/
@@ -33,12 +49,36 @@ RegistroEstudiantes/
 `-- start.sh
 ```
 
-## Reglas de negocio implementadas
-- Estudiante con email unico.
-- Seleccion obligatoria de exactamente 3 materias.
-- Materias seleccionadas deben pertenecer a profesores distintos.
-- Total esperado por estudiante: 9 creditos.
-- Consulta de companeros por cada materia del estudiante.
+## Ejecucion rapida con Docker
+Desde la raiz del proyecto:
+
+```bash
+docker-compose up -d --build
+```
+
+Si usas Compose v2:
+
+```bash
+docker compose up -d --build
+```
+
+### URLs de acceso
+- Frontend: `http://localhost:4200`
+- API base: `http://localhost:5096/api`
+- Swagger: `http://localhost:5096/swagger`
+- Health check API: `http://localhost:5096/health`
+- phpMyAdmin: `http://localhost:8081`
+- MySQL: `localhost:3306`
+
+### Credenciales por defecto
+- MySQL
+  - Usuario: `admin`
+  - Password: `Admin123!`
+  - Base de datos: `RegistroEstudiantesDB`
+- phpMyAdmin
+  - Servidor: `mysql`
+  - Usuario: `admin`
+  - Password: `Admin123!`
 
 ## Endpoints principales
 ### Estudiantes
@@ -55,39 +95,6 @@ RegistroEstudiantes/
 - `GET /api/profesores`
 - `GET /api/profesores/{id}`
 
-Swagger: `http://localhost:5096/swagger`
-
-## Levantar con Docker (recomendado)
-Desde la carpeta raiz `RegistroEstudiantes`:
-
-```bash
-docker-compose up -d --build
-```
-
-Si tu entorno usa Compose v2 tambien funciona:
-
-```bash
-docker compose up -d --build
-```
-
-### URLs
-- Frontend: `http://localhost:4200`
-- API: `http://localhost:5096/api`
-- Swagger: `http://localhost:5096/swagger`
-- Health API: `http://localhost:5096/health`
-- phpMyAdmin: `http://localhost:8081`
-- MySQL: `localhost:3306`
-
-### Credenciales por defecto
-- MySQL
-  - Usuario: `admin`
-  - Password: `Admin123!`
-  - DB: `RegistroEstudiantesDB`
-- phpMyAdmin
-  - Servidor: `mysql`
-  - Usuario: `admin`
-  - Password: `Admin123!`
-
 ## Desarrollo local (sin Docker)
 ### Requisitos
 - .NET 10 SDK
@@ -95,13 +102,11 @@ docker compose up -d --build
 - MySQL 8
 
 ### 1) Base de datos
-Ejecutar script:
-
 ```bash
 mysql -u root -p < scripts/01-init-mysql.sql
 ```
 
-### 2) Backend
+### 2) API
 ```bash
 cd RegistroEstudiantes.API
 dotnet restore
@@ -115,34 +120,28 @@ npm install
 npm run start
 ```
 
-## Comandos utiles
+## Operacion y mantenimiento
 ```bash
-# estado
+# Ver estado
 docker-compose ps
 
-# logs
+# Ver logs
 docker-compose logs -f
 
-# detener
+# Detener servicios
 docker-compose down
 
-# detener y borrar volumenes
+# Detener y eliminar volumenes
 docker-compose down -v
 ```
 
-## Estado actual del CRUD
-- Create: implementado en API y UI.
-- Read: listado y detalle implementados.
-- Update: implementado en API y UI (incluye actualizacion de materias con validaciones).
-- Delete: implementado en API y UI.
+## Base de datos y script entregable
+El archivo `scripts/01-init-mysql.sql` incluye:
+- Creacion de tablas y relaciones.
+- Indices.
+- Datos semilla: 5 profesores y 10 materias.
+- Vistas y procedimientos para validaciones y consultas.
 
-## Archivo SQL entregable
-El script `scripts/01-init-mysql.sql` incluye:
-- Creacion de tablas.
-- Relaciones e indices.
-- Datos semilla (5 profesores y 10 materias).
-- Vistas y procedimientos almacenados para validaciones y consultas de companeros.
-
-## Notas
-- El frontend tiene warnings de budget en build de Angular; no bloquean el despliegue.
+## Observaciones
+- El build del frontend puede mostrar warnings de budget de Angular; no bloquean despliegue.
 - Si cambias puertos o credenciales, actualiza `.env` y `docker-compose.yml`.
